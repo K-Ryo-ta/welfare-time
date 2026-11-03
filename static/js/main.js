@@ -18,11 +18,25 @@ const currentView = isMapPage ? 'list' : 'grid';
 
 function getTargetDateStr() {
     const urlParams = new URLSearchParams(window.location.search);
-    let dateStr = urlParams.get('date');
-    if (!dateStr || dateStr === 'today') {
-        dateStr = todayJst();
+    const dateStr = urlParams.get('date');
+
+    if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        const [year, month, day] = dateStr.split('-').map(Number);
+
+        // タイムゾーンへの依存を避け、日付の自動補正を検出するためUTCで比較する。
+        const date = new Date(0);
+        date.setUTCFullYear(year, month - 1, day);
+
+        if (
+            date.getUTCFullYear() === year &&
+            date.getUTCMonth() === month - 1 &&
+            date.getUTCDate() === day
+        ) {
+            return dateStr;
+        }
     }
-    return dateStr;
+    // 未指定、today、または不正な日付の場合は日本時間の今日を返す
+    return todayJst();
 }
 
 function todayJst() {
